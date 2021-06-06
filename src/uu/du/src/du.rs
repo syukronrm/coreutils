@@ -618,7 +618,7 @@ pub fn uumain(args: impl uucore::Args) -> i32 {
     let files = match matches.value_of(options::FILE) {
         Some(_) => matches.values_of(options::FILE).unwrap().collect(),
         None => {
-            vec!["./"] // TODO: gnu `du` doesn't use trailing "/" here
+            vec!["."]
         }
     };
 

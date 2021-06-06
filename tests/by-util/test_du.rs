@@ -16,7 +16,7 @@ fn _du_basics(s: &str) {
     let answer = "32\t./subdir
 8\t./subdir/deeper
 24\t./subdir/links
-40\t./
+40\t.
 ";
     assert_eq!(s, answer);
 }
@@ -25,7 +25,7 @@ fn _du_basics(s: &str) {
     let answer = "28\t./subdir
 8\t./subdir/deeper
 16\t./subdir/links
-36\t./
+36\t.
 ";
     assert_eq!(s, answer);
 }
@@ -185,12 +185,7 @@ fn test_du_d_flag() {
     {
         let result_reference = scene.cmd("du").arg("-d1").run();
         if result_reference.succeeded() {
-            assert_eq!(
-                // TODO: gnu `du` doesn't use trailing "/" here
-                // result.stdout_str(), result_reference.stdout_str()
-                result.stdout_str().trim_end_matches("/\n"),
-                result_reference.stdout_str().trim_end_matches('\n')
-            );
+            assert_eq!(result.stdout_str(), result_reference.stdout_str());
             return;
         }
     }
@@ -199,15 +194,15 @@ fn test_du_d_flag() {
 
 #[cfg(target_vendor = "apple")]
 fn _du_d_flag(s: &str) {
-    assert_eq!(s, "16\t./subdir\n20\t./\n");
+    assert_eq!(s, "16\t./subdir\n20\t.\n");
 }
 #[cfg(target_os = "windows")]
 fn _du_d_flag(s: &str) {
-    assert_eq!(s, "8\t./subdir\n8\t./\n");
+    assert_eq!(s, "8\t./subdir\n8\t.\n");
 }
 #[cfg(target_os = "freebsd")]
 fn _du_d_flag(s: &str) {
-    assert_eq!(s, "28\t./subdir\n36\t./\n");
+    assert_eq!(s, "28\t./subdir\n36\t.\n");
 }
 #[cfg(all(
     not(target_vendor = "apple"),
@@ -217,9 +212,9 @@ fn _du_d_flag(s: &str) {
 fn _du_d_flag(s: &str) {
     // MS-WSL linux has altered expected output
     if !uucore::os::is_wsl_1() {
-        assert_eq!(s, "28\t./subdir\n36\t./\n");
+        assert_eq!(s, "28\t./subdir\n36\t.\n");
     } else {
-        assert_eq!(s, "8\t./subdir\n8\t./\n");
+        assert_eq!(s, "8\t./subdir\n8\t.\n");
     }
 }
 

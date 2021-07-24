@@ -14,14 +14,41 @@ extern crate uucore;
 
 use clap::{App, Arg};
 use std::borrow::Cow;
+use std::error::Error;
+use std::fmt::Display;
 use std::io::{self, Write};
+use uucore::error::{UCustomError, UResult};
 use uucore::zero_copy::ZeroCopyWriter;
 
 // it's possible that using a smaller or larger buffer might provide better performance on some
 // systems, but honestly this is good enough
 const BUF_SIZE: usize = 16 * 1024;
 
-pub fn uumain(args: impl uucore::Args) -> i32 {
+#[derive(Debug)]
+enum YesError {
+    InvalidArg(String),
+}
+
+impl Display for YesError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            YesError::InvalidArg(s) => write!(f, "{}", s),
+        }
+    }
+}
+
+impl Error for YesError {}
+
+impl UCustomError for YesError {
+    fn code(&self) -> i32 {
+        match self {
+            YesError::InvalidArg(_) => 1,
+        }
+    }
+}
+
+#[uucore_procs::gen_uumain]
+pub fn uumain(args: impl uucore::Args) -> UResult<()> {
     let app = uu_app();
 
     let matches = match app.get_matches_from_safe(args) {
@@ -31,11 +58,10 @@ pub fn uumain(args: impl uucore::Args) -> i32 {
                 || e.kind == clap::ErrorKind::VersionDisplayed =>
         {
             println!("{}", e);
-            return 0;
+            return Ok(());
         }
         Err(f) => {
-            show_error!("{}", f);
-            return 1;
+            return Err(YesError::InvalidArg(f.message).into());
         }
     };
 
@@ -53,7 +79,7 @@ pub fn uumain(args: impl uucore::Args) -> i32 {
 
     exec(bytes);
 
-    0
+    Ok(())
 }
 
 pub fn uu_app() -> App<'static, 'static> {
